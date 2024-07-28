@@ -92,3 +92,21 @@ func MatMulC(A [][]float64, C float64) [][]float64 {
 	}
 	return result
 }
+
+func MatI(Dimension int) [][]float64 {
+	I := make([][]float64, Dimension)
+
+	for i := range Dimension {
+		I[i] = make([]float64, Dimension)
+	}
+
+	for i := range len(I) {
+		for j := range len(I) {
+			if i == j {
+				I[i][j] = 1
+			}
+		}
+	}
+
+	return I
+}

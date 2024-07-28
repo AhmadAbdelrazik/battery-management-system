@@ -44,9 +44,11 @@ func (k *Kalman) Init(b *Battery) {
 // Hk
 func (k *Kalman) GetHk() [][]float64 {
 	var delta float64
-	zk := k.Xk[0][0]
+	zk := k.Xk[0][0] // State of charge
 	if zk != 0 {
 		delta = (OCV(zk) - OCV(zk-0.5)) / 0.5
+	} else {
+		delta = (OCV(zk+0.5) - OCV(zk)) / 0.5
 	}
 	Hk := [][]float64{
 		{delta, -k.Battery.R1, -k.Battery.R2},
@@ -60,4 +62,8 @@ func (k *Kalman) GetKk() [][]float64 {
 	hk := k.GetHk()
 
 	return MatDiv(MatMul(k.Pk, MatT(hk)), MatAdd(MatMul(MatMul(hk, k.Pk), MatT(hk)), k.VoltageSensorVariance))
+}
+
+func (k *Kalman) UpdateYk(i float64) [][]float64 {
+	return [][]float64{{0}}
 }
