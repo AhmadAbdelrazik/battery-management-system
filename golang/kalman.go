@@ -6,12 +6,12 @@ type Kalman struct {
 	Battery *Battery
 	Pk      [][]float64
 	Xk      [][]float64
-	Yk      float64
 	Kk      [][]float64
 	Fk      [][]float64
 	Bk      [][]float64
 	SigmaWk [][]float64
 	SigmaVk float64
+	Yk      float64
 }
 
 func (k *Kalman) Init(b *Battery) {
@@ -57,17 +57,6 @@ func (k *Kalman) GetHk() [][]float64 {
 	return Hk
 }
 
-// Kalman Gain
-func (k *Kalman) GetKk() [][]float64 {
-	hk := k.GetHk()
-
-	return MatDiv(MatMul(k.Pk, MatT(hk)), MatAdd(MatMul(MatMul(hk, k.Pk), MatT(hk)), k.SigmaWk))
-}
-
-func (k *Kalman) UpdateYk(i float64) [][]float64 {
-	return [][]float64{{0}}
-}
-
 func (k *Kalman) StepOne(ik float64) {
 	k.Xk = MatAdd(MatMul(k.Fk, k.Xk), MatMulC(k.Bk, ik))
 }
@@ -84,7 +73,10 @@ func (k *Kalman) StepThree(ik float64) {
 func (k *Kalman) StepFour() {
 	hk := k.GetHk()
 
-	k.Kk = MatDiv(MatMul(k.Pk, MatT(hk)), MatAdd(MatMul(MatMul(hk, k.Pk), MatT(hk)), k.SigmaWk))
+	HKxPKxHKt := MatMul(MatMul(hk, k.Pk), MatT(hk))
+	SigmaY := MatDiffuse(HKxPKxHKt) + k.SigmaVk
+
+	k.Kk = MatMulC(MatMul(k.Pk, hk), 1/SigmaY)
 }
 
 func (k *Kalman) StepFive(outputVoltage float64) {

@@ -110,3 +110,7 @@ func MatI(Dimension int) [][]float64 {
 
 	return I
 }
+
+func MatDiffuse(A [][]float64) float64 {
+	return A[0][0]
+}
