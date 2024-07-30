@@ -4,6 +4,7 @@ import "math"
 
 type Kalman struct {
 	Battery *Battery
+	Data    SoCOCV
 	Pk      [][]float64
 	Xk      [][]float64
 	Kk      [][]float64
@@ -14,7 +15,8 @@ type Kalman struct {
 	Yk      float64
 }
 
-func (k *Kalman) Init(b *Battery) {
+func Init(b *Battery, d SoCOCV) Kalman {
+	var k Kalman
 	// Initial State
 	k.Xk = MatT([][]float64{{1, 0, 0}})
 	// Initial Error Covariance
@@ -39,26 +41,22 @@ func (k *Kalman) Init(b *Battery) {
 	k.Battery = b
 	k.SigmaWk = MatMul(k.Bk, MatT(k.Bk))
 	k.SigmaVk = 1
+
+	k.Data = d
+	return k
 }
 
 // Hk
 func (k *Kalman) GetHk() [][]float64 {
-	var delta float64
-	zk := k.Xk[0][0] // State of charge
-	if zk != 0 {
-		delta = (OCV(zk) - OCV(zk-0.5)) / 0.5
-	} else {
-		delta = (OCV(zk+0.5) - OCV(zk)) / 0.5
-	}
 	Hk := [][]float64{
-		{delta, -k.Battery.R1, -k.Battery.R2},
+		{k.Data.derivative(k.Xk[0][0]), -k.Battery.R1, -k.Battery.R2},
 	}
 
 	return Hk
 }
 
-func (k *Kalman) StepOne(ik float64) {
-	k.Xk = MatAdd(MatMul(k.Fk, k.Xk), MatMulC(k.Bk, ik))
+func (k *Kalman) StepOne() {
+	k.Xk = MatAdd(MatMul(k.Fk, k.Xk), MatMulC(k.Bk, k.Battery.I))
 }
 
 func (k *Kalman) StepTwo() {
@@ -66,8 +64,8 @@ func (k *Kalman) StepTwo() {
 }
 
 // Predict System Output
-func (k *Kalman) StepThree(ik float64) {
-	k.Yk = OCV(k.Battery.Zk) - k.Battery.R0*ik - k.Battery.R1*k.Battery.getI1() - k.Battery.R2*k.Battery.getI2()
+func (k *Kalman) StepThree() {
+	k.Yk = k.Data.GetVoltage(k.Battery.Zk) - k.Battery.R0*k.Battery.I - k.Battery.R1*k.Battery.I1 - k.Battery.R2*k.Battery.I2
 }
 
 func (k *Kalman) StepFour() {
@@ -79,10 +77,30 @@ func (k *Kalman) StepFour() {
 	k.Kk = MatMulC(MatMul(k.Pk, hk), 1/SigmaY)
 }
 
-func (k *Kalman) StepFive(outputVoltage float64) {
-	k.Xk = MatAdd(k.Xk, MatMulC(k.Kk, outputVoltage-k.Yk))
+func (k *Kalman) StepFive(V float64) {
+	k.Xk = MatAdd(k.Xk, MatMulC(k.Kk, V-k.Yk))
 }
 
 func (k *Kalman) StepSix() {
 	k.Pk = MatMul(MatSub(MatI(3), MatMul(k.Kk, k.GetHk())), k.Pk)
+}
+
+func (k *Kalman) Update(I, V float64) {
+	k.Battery.Update(I)
+
+	Ni := k.Battery.Ni
+	if I > 0 {
+		Ni = 1
+	}
+	k.Bk = [][]float64{
+		{-Ni * k.Battery.Dt / (3600 * k.Battery.Cn)},
+		{1 - math.Exp(-k.Battery.Dt/(k.Battery.R1*k.Battery.C1))},
+		{1 - math.Exp(-k.Battery.Dt/(k.Battery.R2*k.Battery.C2))},
+	}
+	k.StepOne()
+	k.StepTwo()
+	k.StepThree()
+	k.StepFour()
+	k.StepFive(V)
+	k.StepSix()
 }
