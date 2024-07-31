@@ -1,6 +1,9 @@
 package main
 
-import "math"
+import (
+	"fmt"
+	"math"
+)
 
 type Kalman struct {
 	Battery *Battery
@@ -15,8 +18,12 @@ type Kalman struct {
 	Yk      float64
 }
 
-func Init(b *Battery, d SoCOCV) Kalman {
+func NewKalman(b *Battery, d SoCOCV) Kalman {
 	var k Kalman
+
+	k.Battery = b
+
+	k.Data = d
 	// Initial State
 	k.Xk = MatT([][]float64{{1, 0, 0}})
 	// Initial Error Covariance
@@ -38,11 +45,9 @@ func Init(b *Battery, d SoCOCV) Kalman {
 		{1 - math.Exp(-k.Battery.Dt/(k.Battery.R2*k.Battery.C2))},
 	}
 
-	k.Battery = b
 	k.SigmaWk = MatMul(k.Bk, MatT(k.Bk))
-	k.SigmaVk = 1
+	k.SigmaVk = math.Pow(0.035, 2)
 
-	k.Data = d
 	return k
 }
 
@@ -97,10 +102,20 @@ func (k *Kalman) Update(I, V float64) {
 		{1 - math.Exp(-k.Battery.Dt/(k.Battery.R1*k.Battery.C1))},
 		{1 - math.Exp(-k.Battery.Dt/(k.Battery.R2*k.Battery.C2))},
 	}
+	// prediction
+
 	k.StepOne()
 	k.StepTwo()
 	k.StepThree()
+
+	V = generateTestValues(k.Yk, 0.035)
+	fmt.Printf("Predicted Voltage = %.4f, measured voltage = %.4f", k.Yk, V)
+
+	// update
 	k.StepFour()
 	k.StepFive(V)
 	k.StepSix()
+
+	fmt.Printf("Kalman SoC = %.3f\n", k.Xk[0][0])
+
 }

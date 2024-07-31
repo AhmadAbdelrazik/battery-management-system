@@ -23,5 +23,19 @@ func (b *Battery) Update(I float64) {
 	dI2 := (1 / (b.R2 * b.C2)) * (I - b.I2) * b.Dt
 
 	b.I1 += dI1
-	b.I2 += dI2
+	b.I1 += dI2
+}
+
+func NewBattery(R0, R1, R2, C1, C2, Dt, Ni, Cn, Zk float64) *Battery {
+	return &Battery{
+		R0: R0,
+		R1: R1,
+		R2: R2,
+		C1: C1,
+		C2: C2,
+		Dt: Dt,
+		Ni: Ni,
+		Cn: Cn,
+		Zk: Zk,
+	}
 }

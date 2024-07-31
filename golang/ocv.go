@@ -9,7 +9,7 @@ var lowestSOC, highestSOC float64
 
 type SoCOCV map[float64]float64
 
-func PopulateData(input string) SoCOCV {
+func NewData(input string) SoCOCV {
 	d := make(SoCOCV)
 
 	for i, line := range strings.Split(input, "\n") {
