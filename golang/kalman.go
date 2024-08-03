@@ -25,7 +25,7 @@ func NewKalman(b *Battery, d SoCOCV) Kalman {
 
 	k.Data = d
 	// Initial State
-	k.Xk = MatT([][]float64{{1, 0, 0}})
+	k.Xk = MatT([][]float64{{b.Zk, 0, 0}})
 	// Initial Error Covariance
 	k.Pk = [][]float64{
 		{0.005, 0, 0},
@@ -70,7 +70,7 @@ func (k *Kalman) StepTwo() {
 
 // Predict System Output
 func (k *Kalman) StepThree() {
-	k.Yk = k.Data.GetVoltage(k.Battery.Zk) - k.Battery.R0*k.Battery.I - k.Battery.R1*k.Battery.I1 - k.Battery.R2*k.Battery.I2
+	k.Yk = k.Data.GetVoltage(k.Xk[0][0]) - k.Battery.R0*k.Battery.I - k.Battery.R1*k.Battery.I1 - k.Battery.R2*k.Battery.I2
 }
 
 func (k *Kalman) StepFour() {
@@ -79,7 +79,7 @@ func (k *Kalman) StepFour() {
 	HKxPKxHKt := MatMul(MatMul(hk, k.Pk), MatT(hk))
 	SigmaY := MatDiffuse(HKxPKxHKt) + k.SigmaVk
 
-	k.Kk = MatMulC(MatMul(k.Pk, hk), 1/SigmaY)
+	k.Kk = MatMulC(MatMul(k.Pk, MatT(hk)), 1/SigmaY)
 }
 
 func (k *Kalman) StepFive(V float64) {
@@ -93,23 +93,21 @@ func (k *Kalman) StepSix() {
 func (k *Kalman) Update(I, V float64) {
 	k.Battery.Update(I)
 
+	// Coulombic Efficiency
 	Ni := k.Battery.Ni
 	if I > 0 {
 		Ni = 1
 	}
-	k.Bk = [][]float64{
-		{-Ni * k.Battery.Dt / (3600 * k.Battery.Cn)},
-		{1 - math.Exp(-k.Battery.Dt/(k.Battery.R1*k.Battery.C1))},
-		{1 - math.Exp(-k.Battery.Dt/(k.Battery.R2*k.Battery.C2))},
-	}
+
+	k.Bk[0][0] = -Ni * k.Battery.Dt / (3600 * k.Battery.Cn)
+
 	// prediction
 
 	k.StepOne()
 	k.StepTwo()
 	k.StepThree()
 
-	V = generateTestValues(k.Yk, 0.035)
-	fmt.Printf("Predicted Voltage = %.4f, measured voltage = %.4f", k.Yk, V)
+	fmt.Printf("Predicted Voltage = %.4f, measured voltage = %.4f\n", k.Yk, V)
 
 	// update
 	k.StepFour()

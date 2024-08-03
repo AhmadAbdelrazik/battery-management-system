@@ -27,5 +27,8 @@ func main() {
 	battery := NewBattery(R0, R1, R2, C1, C2, Dt, Ni, Cn, Zk)
 	kalman := NewKalman(battery, data)
 
-	kalman.Update(3, 0)
+	kalman.Update(0.10, 4)
+	kalman.Update(0.03, 4)
+	kalman.Update(0.03, 4)
+	kalman.Update(0.03, 4)
 }

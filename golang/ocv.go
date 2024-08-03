@@ -18,7 +18,7 @@ func NewData(input string) SoCOCV {
 		}
 		var soc, ocvA, ocvB float64
 
-		fmt.Sscanf(line, "%v, %v, %v", &soc, &ocvA, &ocvB)
+		fmt.Sscanf(strings.ReplaceAll(line, ",", " "), "%v %v, %v", &soc, &ocvA, &ocvB)
 		d[soc] = ocvA
 		if soc < lowestSOC {
 			lowestSOC = soc
@@ -44,10 +44,13 @@ func (d SoCOCV) GetVoltage(z float64) float64 {
 		}
 	}
 
-	y0 := d[lower]
-	y1 := d[upper]
-
-	return (y0*(upper-z) + y1*(z-lower)) / (upper - lower)
+	if upper == lowestSOC {
+		return d[lower]
+	} else if lower == highestSOC {
+		return d[upper]
+	} else {
+		return (d[lower] + d[upper]) / 2
+	}
 }
 
 func (d SoCOCV) derivative(z float64) float64 {
@@ -63,5 +66,9 @@ func (d SoCOCV) derivative(z float64) float64 {
 		}
 	}
 
-	return (d[upper] - d[lower]) / (upper - lower)
+	if upper == lowestSOC || lower == highestSOC {
+		return 0
+	} else {
+		return (d[upper] - d[lower]) / (upper - lower)
+	}
 }
