@@ -2,11 +2,13 @@ package main
 
 import (
 	"math"
+
+	"gonum.org/v1/gonum/stat/distuv"
 )
 
 type Kalman struct {
 	Battery *Battery
-	Data    SoCOCV
+	SoC_OCV SoCOCV
 	Pk      [][]float64 // Error Covariance
 	Xk      [][]float64 // State Estimate
 	Kk      [][]float64 // Kalman Gain
@@ -23,7 +25,7 @@ func NewKalman(b *Battery, d SoCOCV) Kalman {
 	var k Kalman
 
 	k.Battery = b
-	k.Data = d
+	k.SoC_OCV = d
 
 	// Initial State
 	k.Xk = MatT([][]float64{{b.Zk, 0, 0}})
@@ -56,7 +58,7 @@ func NewKalman(b *Battery, d SoCOCV) Kalman {
 // Hk is the Measurement Jacobian
 func (k *Kalman) GetHk() [][]float64 {
 	// the rate of change of the Open Circuit Voltage to the State of Charge
-	derivative := k.Data.derivative(k.Xk[0][0] * 100)
+	derivative := k.SoC_OCV.Derivative(k.Xk[0][0] * 100)
 
 	Hk := [][]float64{
 		{derivative, -k.Battery.R1, -k.Battery.R2},
@@ -88,7 +90,7 @@ func (k *Kalman) StepTwo() {
 // Car Battery, we calculate the terminal voltage using the Battery parameters
 // and get the OCV using the SOC-OCV graph using the current SoC.
 func (k *Kalman) StepThree() {
-	OCV := k.Data.GetVoltage(k.Xk[0][0] * 100)
+	OCV := k.SoC_OCV.GetVoltage(k.Xk[0][0] * 100)
 	k.Yk = OCV - k.Battery.R0*k.Battery.I - k.Battery.R1*k.Battery.I1 - k.Battery.R2*k.Battery.I2
 }
 
@@ -172,10 +174,19 @@ func (k *Kalman) MockCycle(I float64) (float64, float64) {
 	k.StepThree()
 
 	// update
-	mockV := min(generateTestValues(k.Yk, 0.035))
+	mockV := addGaussianError(k.Yk, k.SigmaVk)
 	k.StepFour()
 	k.StepFive(mockV)
 	k.StepSix()
 
 	return k.Xk[0][0], k.Yk
+}
+
+func addGaussianError(mean, sigma float64) float64 {
+	normalDist := distuv.Normal{
+		Mu:    mean,
+		Sigma: sigma,
+	}
+
+	return normalDist.Rand()
 }
