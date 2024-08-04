@@ -33,7 +33,7 @@ func main() {
 	fmt.Printf("----------------------------------------------------------------------------------------\n\n")
 	time.Sleep(3 * time.Second)
 	for {
-		soc, v := kalman.UpdateTest(3)
+		soc, v := kalman.MockCycle(3)
 
 		if i%2000 == 0 {
 			fmt.Printf("Iteration number: %6v\t|   ", i)
