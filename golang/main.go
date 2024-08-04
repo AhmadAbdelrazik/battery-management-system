@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"math"
 	"os"
+	"time"
 )
 
 func main() {
@@ -22,13 +23,27 @@ func main() {
 	Dt := 0.1    // Time step in seconds
 	Ni := 0.9894 // Coulombic Efficiency
 	Cn := 6.8080 // Nominal Capacity
-	Zk := 100.0  // State of Charge
+	Zk := 1.0    // State of Charge
 
 	battery := NewBattery(R0, R1, R2, C1, C2, Dt, Ni, Cn, Zk)
 	kalman := NewKalman(battery, data)
 
-	kalman.Update(0.10, 4)
-	kalman.Update(0.03, 4)
-	kalman.Update(0.03, 4)
-	kalman.Update(0.03, 4)
+	i := 0
+	fmt.Printf("\n\nCalculating SoC using Kalman Filter with constant current of 3A and maximum Voltage = 4.2V\n")
+	fmt.Printf("----------------------------------------------------------------------------------------\n\n")
+	time.Sleep(3 * time.Second)
+	for {
+		soc, v := kalman.UpdateTest(3)
+
+		if i%2000 == 0 {
+			fmt.Printf("Iteration number: %6v\t|   ", i)
+			fmt.Printf("State of Charge (SoC): %.2f%%\t|   ", soc*100)
+			fmt.Printf("Terminal Voltage: %.3fV\n", v)
+			time.Sleep(1 * time.Second)
+		}
+		if soc < 0.02 {
+			break
+		}
+		i++
+	}
 }

@@ -2,10 +2,24 @@ package main
 
 import (
 	"errors"
-	"slices"
 )
 
 var ErrDimensions = errors.New("columns of a and rows of b should be equal")
+
+func clone(A [][]float64) [][]float64 {
+	result := make([][]float64, len(A))
+	for i := range result {
+		result[i] = make([]float64, len(A[0]))
+	}
+
+	for i := range A {
+		for j := range A[i] {
+			result[i][j] = A[i][j]
+		}
+	}
+
+	return result
+}
 
 func MatMul(A, B [][]float64) [][]float64 {
 
@@ -57,7 +71,7 @@ func MatAdd(A, B [][]float64) [][]float64 {
 		panic("dimensions error")
 	}
 
-	result := slices.Clone(A)
+	result := clone(A)
 	for i := range len(result) {
 		for j := range len(result[0]) {
 			result[i][j] += B[i][j]
@@ -72,7 +86,7 @@ func MatSub(A, B [][]float64) [][]float64 {
 		panic("dimensions error")
 	}
 
-	result := slices.Clone(A)
+	result := clone(A)
 	for i := range len(result) {
 		for j := range len(result[0]) {
 			result[i][j] -= B[i][j]
@@ -83,7 +97,7 @@ func MatSub(A, B [][]float64) [][]float64 {
 }
 
 func MatMulC(A [][]float64, C float64) [][]float64 {
-	result := slices.Clone(A)
+	result := clone(A)
 
 	for i := range len(result) {
 		for j := range len(result[0]) {

@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"math"
 	"strings"
 )
 
@@ -32,43 +33,25 @@ func NewData(input string) SoCOCV {
 }
 
 func (d SoCOCV) GetVoltage(z float64) float64 {
-	var upper float64 = lowestSOC
-	var lower float64 = highestSOC
+	z1, z2 := math.Floor(z)+0.5, z
 
-	for soc := range d {
-		if soc > lower && soc < z {
-			lower = soc
-		}
-		if soc < upper && soc > z {
-			upper = soc
-		}
-	}
-
-	if upper == lowestSOC {
-		return d[lower]
-	} else if lower == highestSOC {
-		return d[upper]
+	if math.Ceil(z)-z < z-math.Floor(z) {
+		z2 = math.Ceil(z)
 	} else {
-		return (d[lower] + d[upper]) / 2
+		z2 = math.Floor(z)
 	}
+
+	return (d[z1] + d[z2]) / 2
 }
 
 func (d SoCOCV) derivative(z float64) float64 {
-	var upper float64 = lowestSOC
-	var lower float64 = highestSOC
+	z1, z2 := math.Floor(z)+0.5, z
 
-	for soc := range d {
-		if soc > lower && soc < z {
-			lower = soc
-		}
-		if soc < upper && soc > z {
-			upper = soc
-		}
-	}
-
-	if upper == lowestSOC || lower == highestSOC {
-		return 0
+	if math.Ceil(z)-z < z-math.Floor(z) {
+		z2 = math.Ceil(z)
 	} else {
-		return (d[upper] - d[lower]) / (upper - lower)
+		z2 = math.Floor(z)
 	}
+
+	return (d[z1] - d[z2]) / (z1 - z2)
 }
