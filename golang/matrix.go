@@ -1,26 +1,14 @@
 package main
 
+// Matrix Operations to ease kalman filter.
+
 import (
 	"errors"
 )
 
 var ErrDimensions = errors.New("columns of a and rows of b should be equal")
 
-func clone(A [][]float64) [][]float64 {
-	result := make([][]float64, len(A))
-	for i := range result {
-		result[i] = make([]float64, len(A[0]))
-	}
-
-	for i := range A {
-		for j := range A[i] {
-			result[i][j] = A[i][j]
-		}
-	}
-
-	return result
-}
-
+// MatMul: Multiplies to Matrices
 func MatMul(A, B [][]float64) [][]float64 {
 
 	rowA, colA, rowB, colB := len(A), len(A[0]), len(B), len(B[0])
@@ -45,6 +33,7 @@ func MatMul(A, B [][]float64) [][]float64 {
 	return result
 }
 
+// MatT: Transpose Matrix
 func MatT(A [][]float64) [][]float64 {
 	rowA, colA := len(A), len(A[0])
 
@@ -62,10 +51,12 @@ func MatT(A [][]float64) [][]float64 {
 	return result
 }
 
+// MatDiv: Divides two matrices
 func MatDiv(A, B [][]float64) [][]float64 {
 	return MatMul(A, MatT(B))
 }
 
+// MatAdd: Adds two matrices
 func MatAdd(A, B [][]float64) [][]float64 {
 	if len(A) != len(B) || len(A[0]) != len(B[0]) {
 		panic("dimensions error")
@@ -81,6 +72,7 @@ func MatAdd(A, B [][]float64) [][]float64 {
 	return result
 }
 
+// MatSub: Subtract two matrices
 func MatSub(A, B [][]float64) [][]float64 {
 	if len(A) != len(B) || len(A[0]) != len(B[0]) {
 		panic("dimensions error")
@@ -96,6 +88,7 @@ func MatSub(A, B [][]float64) [][]float64 {
 	return result
 }
 
+// MatMulC: Multiples a matrix with a constant
 func MatMulC(A [][]float64, C float64) [][]float64 {
 	result := clone(A)
 
@@ -107,6 +100,7 @@ func MatMulC(A [][]float64, C float64) [][]float64 {
 	return result
 }
 
+// MatI: Produce Identity Matrix
 func MatI(Dimension int) [][]float64 {
 	I := make([][]float64, Dimension)
 
@@ -125,6 +119,25 @@ func MatI(Dimension int) [][]float64 {
 	return I
 }
 
+// MatDiffuse: Converts a 1 * 1 matrix to a float
+// Same working as A[0][0], used for abstraction purposes.
 func MatDiffuse(A [][]float64) float64 {
 	return A[0][0]
+}
+
+// clone: makes a new copy of the matrix.
+// this prevents editing the copied matrix in the operations.
+func clone(A [][]float64) [][]float64 {
+	result := make([][]float64, len(A))
+	for i := range result {
+		result[i] = make([]float64, len(A[0]))
+	}
+
+	for i := range A {
+		for j := range A[i] {
+			result[i][j] = A[i][j]
+		}
+	}
+
+	return result
 }
