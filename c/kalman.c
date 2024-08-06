@@ -78,7 +78,6 @@ void StepSix(Kalman *k) {
 }
 
 
-
 Kalman* InitKalman(Battery* b) {
 	Kalman *k = NULL;
 	k = malloc(sizeof(Kalman));
@@ -129,8 +128,26 @@ Kalman* InitKalman(Battery* b) {
 	return k;
 }
 
-SoC_Reading KalmanCycle(Kalman* k, float measuredCurrent, float measuredVoltage) {
 
-	return 0;
+
+SoC_Reading KalmanCycle(Kalman* k, float measuredCurrent, float measuredVoltage) {
+	float Ni = k->b->Ni;
+	if (measuredCurrent > 0) {
+		Ni = 1;
+	}
+	
+	k->Bk[0][0] = - Ni * k->b->Dt / (3600 * k->b->Cn);
+
+	StepOne(k, measuredCurrent);
+	StepTwo(k);
+	StepThree(k, measuredCurrent);
+
+	k->Hk[0][0] = Get_Derivative(k->Xk[0][0] * 100);
+
+	StepFour(k);
+	StepFive(k, measuredVoltage);
+	StepSix(k);
+
+	return k->Xk[0][0];
 }
 
