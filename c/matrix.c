@@ -2,14 +2,14 @@
 
 
 // MatMul: Multiplies two matrices
-double** MatMul(double** A, double** B, int rowA, int colA, int rowB, int colB) {
+float** MatMul(float** A, float** B, int rowA, int colA, int rowB, int colB) {
     if (colA != rowB) {
         return NULL;
     }
 
-    double** result = (double**)malloc(rowA * sizeof(double*));
+    float** result = (float**)malloc(rowA * sizeof(float*));
     for (int i = 0; i < rowA; i++) {
-        result[i] = (double*)calloc(colB, sizeof(double));
+        result[i] = (float*)calloc(colB, sizeof(float));
     }
 
     for (int row = 0; row < rowA; row++) {
@@ -24,10 +24,10 @@ double** MatMul(double** A, double** B, int rowA, int colA, int rowB, int colB) 
 }
 
 // MatT: Transpose Matrix
-double** MatT(double** A, int rowA, int colA) {
-    double** result = (double**)malloc(colA * sizeof(double*));
+float** MatT(float** A, int rowA, int colA) {
+    float** result = (float**)malloc(colA * sizeof(float*));
     for (int i = 0; i < colA; i++) {
-        result[i] = (double*)malloc(rowA * sizeof(double));
+        result[i] = (float*)malloc(rowA * sizeof(float));
     }
 
     for (int row = 0; row < rowA; row++) {
@@ -40,9 +40,9 @@ double** MatT(double** A, int rowA, int colA) {
 }
 
 // MatDiv: Divides two matrices (Multiplication with transpose)
-double** MatDiv(double** A, double** B, int rowA, int colA, int rowB, int colB) {
-    double** Bt = MatT(B, rowB, colB);
-    double** result = MatMul(A, Bt, rowA, colA, colB, rowB);
+float** MatDiv(float** A, float** B, int rowA, int colA, int rowB, int colB) {
+    float** Bt = MatT(B, rowB, colB);
+    float** result = MatMul(A, Bt, rowA, colA, colB, rowB);
     for (int i = 0; i < colB; i++) {
         free(Bt[i]);
     }
@@ -51,10 +51,10 @@ double** MatDiv(double** A, double** B, int rowA, int colA, int rowB, int colB) 
 }
 
 // MatAdd: Adds two matrices
-double** MatAdd(double** A, double** B, int rowA, int colA) {
-    double** result = (double**)malloc(rowA * sizeof(double*));
+float** MatAdd(float** A, float** B, int rowA, int colA) {
+    float** result = (float**)malloc(rowA * sizeof(float*));
     for (int i = 0; i < rowA; i++) {
-        result[i] = (double*)malloc(colA * sizeof(double));
+        result[i] = (float*)malloc(colA * sizeof(float));
     }
 
     for (int i = 0; i < rowA; i++) {
@@ -67,10 +67,10 @@ double** MatAdd(double** A, double** B, int rowA, int colA) {
 }
 
 // MatSub: Subtracts two matrices
-double** MatSub(double** A, double** B, int rowA, int colA) {
-    double** result = (double**)malloc(rowA * sizeof(double*));
+float** MatSub(float** A, float** B, int rowA, int colA) {
+    float** result = (float**)malloc(rowA * sizeof(float*));
     for (int i = 0; i < rowA; i++) {
-        result[i] = (double*)malloc(colA * sizeof(double));
+        result[i] = (float*)malloc(colA * sizeof(float));
     }
 
     for (int i = 0; i < rowA; i++) {
@@ -83,10 +83,10 @@ double** MatSub(double** A, double** B, int rowA, int colA) {
 }
 
 // MatMulC: Multiplies a matrix with a constant
-double** MatMulC(double** A, int rowA, int colA, double C) {
-    double** result = (double**)malloc(rowA * sizeof(double*));
+float** MatMulC(float** A, int rowA, int colA, float C) {
+    float** result = (float**)malloc(rowA * sizeof(float*));
     for (int i = 0; i < rowA; i++) {
-        result[i] = (double*)malloc(colA * sizeof(double));
+        result[i] = (float*)malloc(colA * sizeof(float));
     }
 
     for (int i = 0; i < rowA; i++) {
@@ -99,10 +99,10 @@ double** MatMulC(double** A, int rowA, int colA, double C) {
 }
 
 // MatI: Produces Identity Matrix
-double** MatI(int Dimension) {
-    double** I = (double**)malloc(Dimension * sizeof(double*));
+float** MatI(int Dimension) {
+    float** I = (float**)malloc(Dimension * sizeof(float*));
     for (int i = 0; i < Dimension; i++) {
-        I[i] = (double*)calloc(Dimension, sizeof(double));
+        I[i] = (float*)calloc(Dimension, sizeof(float));
     }
 
     for (int i = 0; i < Dimension; i++) {
@@ -113,13 +113,13 @@ double** MatI(int Dimension) {
 }
 
 // MatDiffuse: Converts a 1 * 1 matrix to a float
-double MatDiffuse(double** A) {
+float MatDiffuse(float** A) {
     return A[0][0];
 }
 
 
 // Helper function to free matrix memory
-void freeMatrix(double** matrix, int rows) {
+void freeMatrix(float** matrix, int rows) {
     for (int i = 0; i < rows; i++) {
         free(matrix[i]);
     }
@@ -127,7 +127,7 @@ void freeMatrix(double** matrix, int rows) {
 }
 
 // Helper function to print matrix
-void printMatrix(double** matrix, int rows, int cols) {
+void printMatrix(float** matrix, int rows, int cols) {
     for (int i = 0; i < rows; i++) {
         for (int j = 0; j < cols; j++) {
             printf("%f ", matrix[i][j]);
@@ -138,19 +138,19 @@ void printMatrix(double** matrix, int rows, int cols) {
 
 
 // Example usage
-/*int main() {*/
-/*    double* Adata[] = { (double[]){1, 2}, (double[]){3, 4} };*/
-/*    double** A = (double**)Adata;*/
-/**/
-/*    double* Bdata[] = { (double[]){5, 6}, (double[]){7, 8} };*/
-/*    double** B = (double**)Bdata;*/
-/**/
-/*    int rowA = 2, colA = 2, rowB = 2, colB = 2;*/
-/**/
-/*    double** result = MatMul(A, B, rowA, colA, rowB, colB);*/
-/*    printMatrix(result, rowA, colB);*/
-/*    freeMatrix(result, rowA);*/
-/**/
-/*    return 0;*/
-/*}*/
-/**/
+int main() {
+    float* Adata[] = { (float[]){1, 2}, (float[]){3, 4} };
+    float** A = (float**)Adata;
+
+    float* Bdata[] = { (float[]){5, 6}, (float[]){7, 8} };
+    float** B = (float**)Bdata;
+
+    int rowA = 2, colA = 2, rowB = 2, colB = 2;
+
+    float** result = MatMul(A, B, rowA, colA, rowB, colB);
+    printMatrix(result, rowA, colB);
+    freeMatrix(result, rowA);
+
+    return 0;
+}
+

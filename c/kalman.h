@@ -5,6 +5,7 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <math.h>
 
 typedef struct {
 	float R0;
@@ -20,30 +21,34 @@ typedef struct {
 
 typedef struct {
 	Battery* b;
-	float Pk[3][3];
-	float Xk[3][1];
-	float Kk[3][1];
-	float Fk[3][3];
-	float Bk[3][1];
-	float SigmaWk[1][1];
+	float **Pk;
+	float **Xk;
+	float **Kk;
+	float **Fk;
+	float **Bk;
+	float **Hk;
+	float **SigmaWk;
 	float SigmaVk;
 	float Yk;
 } Kalman;
 
+extern float SOC_OCV_Curve_Readings[201];
+
 typedef float SoC_Reading;
 
 // Matrix Functions
-double** MatT(double** A, int rowA, int colA);
-double** MatMul(double** A, double** B, int rowA, int colA, int rowB, int colB);
-double** MatDiv(double** A, double** B, int rowA, int colA, int rowB, int colB);
-double** MatAdd(double** A, double** B, int rowA, int colA);
-double** MatSub(double** A, double** B, int rowA, int colA);
-double** MatMulC(double** A, int rowA, int colA, double C);
-double** MatI(int Dimension);
-double MatDiffuse(double** A);
-void freeMatrix(double** matrix, int rows);
-void printMatrix(double** matrix, int rows, int cols);
+float** MatT(float** A, int rowA, int colA);
+float** MatMul(float** A, float** B, int rowA, int colA, int rowB, int colB);
+float** MatDiv(float** A, float** B, int rowA, int colA, int rowB, int colB);
+float** MatAdd(float** A, float** B, int rowA, int colA);
+float** MatSub(float** A, float** B, int rowA, int colA);
+float** MatMulC(float** A, int rowA, int colA, float C);
+float** MatI(int Dimension);
+float MatDiffuse(float** A);
+void freeMatrix(float** matrix, int rows);
+void printMatrix(float** matrix, int rows, int cols);
 
+float Get_Voltage(float SOC);
 
 Kalman* InitKalman(Battery* b);
 SoC_Reading KalmanCycle(Kalman* k, float measuredCurrent, float measuredVoltage);

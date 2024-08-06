@@ -1,10 +1,19 @@
 #include "kalman.h"
 
 int main() {
-	
-	float A[2][3] = {{1, 2, 3}, {4, 5, 6}}, B[3][2] = {{10, 11},{20, 21},{30, 31}};
-	
-	float **C = MatMul(A, 2, 3, B, 3, 2);
+
+
+	double* Adata[] = { (double[]){1, 2}, (double[]){3, 4} };
+	double** A = (double**)Adata;
+
+	double* Bdata[] = { (double[]){5, 6}, (double[]){7, 8} };
+	double** B = (double**)Bdata;
+
+	int rowA = 2, colA = 2, rowB = 2, colB = 2;
+
+	double** result = MatMul(A, B, rowA, colA, rowB, colB);
+	printMatrix(result, rowA, colB);
+	freeMatrix(result, rowA);
 
 	return 0;
 }
