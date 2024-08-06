@@ -1,4 +1,5 @@
 #include "kalman.h"
+#include <math.h>
 
 float SOC_OCV_Curve_Readings[201] = {
 3.0,
@@ -212,5 +213,18 @@ float Get_Voltage(float SOC) {
 	} else {
 		return (SOC_OCV_Curve_Readings[(int)(low * 2 + 1)] + SOC_OCV_Curve_Readings[(int)(mid * 2 + 1)]) / 2.0;
 	}
+}
+
+
+float Get_Derivative(float SOC) {
+	float mid = floorf(SOC) + 0.5;
+	float soc2;
+	if (ceilf(SOC) - SOC < SOC - floorf(SOC)) {
+		soc2 = ceilf(SOC);
+	} else {
+		soc2 = floorf(SOC);
+	}
+
+	return (SOC_OCV_Curve_Readings[(int)(mid * 2 + 1)] - SOC_OCV_Curve_Readings[(int)(soc2 * 2 + 1)]) / (mid - soc2);
 }
 

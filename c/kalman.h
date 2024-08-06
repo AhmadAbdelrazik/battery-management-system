@@ -36,6 +36,10 @@ extern float SOC_OCV_Curve_Readings[201];
 
 typedef float SoC_Reading;
 
+// Kalman Functions
+Kalman* InitKalman(Battery* b);
+SoC_Reading KalmanCycle(Kalman* k, float measuredCurrent, float measuredVoltage);
+
 // Matrix Functions
 float** MatT(float** A, int rowA, int colA);
 float** MatMul(float** A, float** B, int rowA, int colA, int rowB, int colB);
@@ -48,10 +52,8 @@ float MatDiffuse(float** A);
 void freeMatrix(float** matrix, int rows);
 void printMatrix(float** matrix, int rows, int cols);
 
+// Curve Related Functions
 float Get_Voltage(float SOC);
-
-Kalman* InitKalman(Battery* b);
-SoC_Reading KalmanCycle(Kalman* k, float measuredCurrent, float measuredVoltage);
-
+float Get_Derivative(float SOC);
 
 #endif	// KALMAN_H
