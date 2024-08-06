@@ -49,9 +49,3 @@ Battery* NewBattery(
 
 	return b;
 };
-
-void UpdateCurrents(Battery *b, double current) {
-	b->I = current;
-	b->I1 += (1 / (b->R1 * b->C1)) * (current - b->I1) * b->Dt;
-	b->I1 += (1 / (b->R2 * b->C2)) * (current - b->I2) * b->Dt;
-}

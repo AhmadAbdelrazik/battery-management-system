@@ -12,6 +12,7 @@ type Kalman struct {
 	Pk      [][]float64 // Error Covariance
 	Xk      [][]float64 // State Estimate
 	Kk      [][]float64 // Kalman Gain
+	Hk      [][]float64 // Measurement Jacobian
 	Fk      [][]float64 // Process Jacobian
 	Bk      [][]float64 // Control Input Matrix
 	SigmaWk [][]float64 // Process Noise Covariance Matrix
@@ -49,22 +50,16 @@ func NewKalman(b *Battery, d SoCOCV) Kalman {
 		{1 - math.Exp(-k.Battery.Dt/(k.Battery.R2*k.Battery.C2))},
 	}
 
+	derivative := k.SoC_OCV.Derivative(k.Xk[0][0] * 100)
+
+	k.Hk = [][]float64{
+		{derivative, -k.Battery.R1, -k.Battery.R2},
+	}
+
 	k.SigmaWk = MatMul(k.Bk, MatT(k.Bk))
 	k.SigmaVk = math.Pow(0.035, 2)
 
 	return k
-}
-
-// Hk is the Measurement Jacobian
-func (k *Kalman) GetHk() [][]float64 {
-	// the rate of change of the Open Circuit Voltage to the State of Charge
-	derivative := k.SoC_OCV.Derivative(k.Xk[0][0] * 100)
-
-	Hk := [][]float64{
-		{derivative, -k.Battery.R1, -k.Battery.R2},
-	}
-
-	return Hk
 }
 
 // StepOne: State Estimate Propagation
@@ -91,7 +86,7 @@ func (k *Kalman) StepTwo() {
 // and get the OCV using the SOC-OCV graph using the current SoC.
 func (k *Kalman) StepThree() {
 	OCV := k.SoC_OCV.GetVoltage(k.Xk[0][0] * 100)
-	k.Yk = OCV - k.Battery.R0*k.Battery.I - k.Battery.R1*k.Battery.I1 - k.Battery.R2*k.Battery.I2
+	k.Yk = OCV - k.Battery.R0*k.Battery.I - k.Battery.R1*k.Xk[1][0] - k.Battery.R2*k.Xk[2][0]
 }
 
 // StepFour: Calculate the kalman gain
@@ -101,12 +96,11 @@ func (k *Kalman) StepThree() {
 // as the system matures, the measured voltage weight becomes lesser as the
 // system becomes more stable and based on many measurements.
 func (k *Kalman) StepFour() {
-	hk := k.GetHk()
 
-	HKxPKxHKt := MatMul(MatMul(hk, k.Pk), MatT(hk))
+	HKxPKxHKt := MatMul(MatMul(k.Hk, k.Pk), MatT(k.Hk))
 	SigmaY := MatDiffuse(HKxPKxHKt) + k.SigmaVk
 
-	k.Kk = MatMulC(MatMul(k.Pk, MatT(hk)), 1/SigmaY)
+	k.Kk = MatMulC(MatMul(k.Pk, MatT(k.Hk)), 1/SigmaY)
 }
 
 // StepFive: State Esitmate Update
@@ -121,15 +115,13 @@ func (k *Kalman) StepFive(measuredVoltage float64) {
 // We update the error covariance to reflect the maturity of the system
 // as more measured values are added to the system.
 func (k *Kalman) StepSix() {
-	k.Pk = MatMul(MatSub(MatI(3), MatMul(k.Kk, k.GetHk())), k.Pk)
+	k.Pk = MatMul(MatSub(MatI(3), MatMul(k.Kk, k.Hk)), k.Pk)
 }
 
 // Cycle: Represents a full Kalman Filter Cycle
 // measuredVoltage: the terminal voltage of the battery.
 // measuredCurrent: The current drawn from the battery to feed the system.
 func (k *Kalman) Cycle(measuredCurrent, measuredVoltage float64) float64 {
-	k.Battery.UpdateCurrents(measuredCurrent)
-
 	// Coulombic Efficiency
 	// 1  at discharge
 	// Ni at charge
@@ -139,12 +131,12 @@ func (k *Kalman) Cycle(measuredCurrent, measuredVoltage float64) float64 {
 	}
 
 	k.Bk[0][0] = -Ni * k.Battery.Dt / (3600 * k.Battery.Cn)
-
 	// prediction
 	k.StepOne()
 	k.StepTwo()
 	k.StepThree()
 
+	k.Hk[0][0] = k.SoC_OCV.Derivative(k.Xk[0][0] * 100)
 	// update
 	k.StepFour()
 	k.StepFive(measuredVoltage)
@@ -158,8 +150,6 @@ func (k *Kalman) Cycle(measuredCurrent, measuredVoltage float64) float64 {
 // predicted voltage + gaussian noise. it aims to simulate the working
 // of a voltage sensor
 func (k *Kalman) MockCycle(I float64) (float64, float64) {
-	k.Battery.UpdateCurrents(I)
-
 	// Coulombic Efficiency
 	Ni := k.Battery.Ni
 	if I > 0 {

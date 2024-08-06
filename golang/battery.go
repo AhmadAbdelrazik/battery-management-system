@@ -15,17 +15,6 @@ type Battery struct {
 	Zk float64 // State of Charge
 }
 
-// UpdateCurrents: Updates I, I1, I2 based on thevenin's 2nd-order circuit
-// I: measured current
-func (b *Battery) UpdateCurrents(I float64) {
-	b.I = I
-	dI1 := (1 / (b.R1 * b.C1)) * (I - b.I1) * b.Dt
-	dI2 := (1 / (b.R2 * b.C2)) * (I - b.I2) * b.Dt
-
-	b.I1 += dI1
-	b.I1 += dI2
-}
-
 // Initializes a new Battery.
 func NewBattery(R0, R1, R2, C1, C2, Dt, Ni, Cn, Zk float64) *Battery {
 	return &Battery{
