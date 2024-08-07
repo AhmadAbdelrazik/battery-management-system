@@ -4,6 +4,9 @@
 
 This project involves implementing a method to estimate the State-of-Charge (SOC) of a lithium-ion polymer battery used in a Formula Student electric race car. The method utilizes a battery equivalent circuit model and an Extended Kalman Filter (EKF) to provide accurate SOC estimations. The project will be implemented in two programming languages: Go and C.
 
+The project is based on the amazing research paper called [Battery Modeling and Kalman Filter-based State-of-Charge Estimation for a Race Car Application](https://www.researchgate.net/publication/317538604_Battery_Modeling_and_Kalman_Filter-based_State-of-Charge_Estimation_for_a_Race_Car_Application)
+
+
 ## Table of Contents
 
 - [Introduction](#introduction)
@@ -33,14 +36,15 @@ battery-soc-estimation/
 │   ├── battery.go
 │   ├── kalman.go
 │   ├── matrix.go
-│   ├── matrix_test.go
+│   ├── ocv.go
+│   ├── ocv_vs_soc.csv
 │   └── README.md
 └── c/
     ├── main.c
-    ├── battery_model.c
-    ├── ekf.c
-    ├── battery_model.h
-    ├── ekf.h
+    ├── data.c
+    ├── matrix.c
+    ├── kalman.c
+    ├── kalman.h
     └── README.md
 ```
 

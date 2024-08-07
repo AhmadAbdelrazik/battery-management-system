@@ -1,6 +1,4 @@
 #include "kalman.h"
-#include <math.h>
-#include <stdio.h>
 
 int main() {
 	float R0, R1, R2, C1, C2, Dt, Ni, Cn, Zk;
@@ -18,17 +16,6 @@ int main() {
 };
 
 	Kalman *k = (Kalman *)InitKalman(&B);
-
-	int i;
-	float Current = 0.4; // in Amperes
-	float voltageReadings, SoCreadings;
-	do {
-		SoCreadings = KalmanMockCycle(k, Current, &voltageReadings);
-		if (((int)(SoCreadings * 100) % 3) == 0) {
-			printf("SoC = %.4f%%\tV = %.4f\n", SoCreadings, voltageReadings);
-		}
-
-	} while(SoCreadings > 0.1);
 
 	return 0;
 }

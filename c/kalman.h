@@ -5,6 +5,7 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <math.h>
 
 typedef struct {
 	float R0;

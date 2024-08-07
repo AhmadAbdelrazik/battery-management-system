@@ -2,6 +2,12 @@
 #include <math.h>
 
 
+// Helper Functions
+float* allocate_1(float element);
+float* allocate_3(float e1, float e2, float e3);
+float **allocate_3_ptrs(float *ptr1, float *ptr2, float *ptr3);
+float **allocate_1_ptr(float *ptr);
+
 void StepOne(Kalman *k, float measuredCurrent) {
 	float **BkxI = MatMulC(k->Bk, 3, 1, measuredCurrent);
 	float **FkxXk = MatMul(k->Fk, k->Xk, 3, 3, 3, 1);
@@ -85,52 +91,33 @@ Kalman* InitKalman(Battery* b) {
 	k->b = b;
 
 	// Initial State
-	
-	float XkDataR1[] = {b->Zk, 0, 0};
-	float* XkData[] = { 
-		XkDataR1
-	};
-	k->Xk = (float**)XkData;
-
+	k->Xk = allocate_1_ptr(allocate_3(b->Zk, 0, 0));
 
 	// Initial Error Covariance
-
-	float PkDataR1[] = {0.005, 0, 0};
-	float PkDataR2[] = {0,0.0001,0};
-	float PkDataR3[] = {0,0,0.0001};
-	float* PkData[] = { 
-		PkDataR1,
-		PkDataR2,
-		PkDataR3
-	};
-	k->Pk = (float**)PkData;
+	k->Pk = allocate_3_ptrs(
+		allocate_3(0.005, 0, 0),
+		allocate_3(0, 0.0001, 0),
+		allocate_3(0, 0, 0.001)
+	);
 
 	// Process Jacobian
-	
-	float FkDataR1[] = {1, 0, 0};
-	float FkDataR2[] = {0, expf(-k->b->Dt / (k->b->R1 * k->b->C1)), 0};
-	float FkDataR3[] = {0, 0, expf(-k->b->Dt / (k->b->R2 * k->b->C2))};
-
-	float* FkData[] = { 
-		FkDataR1,
-		FkDataR2,
-		FkDataR3
-	};
-	k->Fk = (float**)FkData;
+	k->Fk = allocate_3_ptrs(
+		allocate_3(1, 0, 0),
+		allocate_3(0,expf(-k->b->Dt / (k->b->R1 * k->b->C1)) ,0),
+		allocate_3(0,0,expf(-k->b->Dt / (k->b->R2 * k->b->C2)))
+	);
 
 
-	float* BkData[] = {
-		(float[]){-k->b->Ni * k->b->Dt / (3600 * k->b->Cn)},
-		(float[]){1 - expf(-k->b->Dt / (k->b->R1 * k->b->C1))},
-		(float[]){1 - expf(-k->b->Dt / (k->b->R2 * k->b->C2))},
-	};
-	k->Bk = (float**)BkData;
+	k->Bk = allocate_3_ptrs(
+		allocate_1(-k->b->Ni * k->b->Dt / (3600 * k->b->Cn)),
+		allocate_1(1 - expf(-k->b->Dt / (k->b->R1 * k->b->C1))),
+		allocate_1(1 - expf(-k->b->Dt / (k->b->R2 * k->b->C2)))
+	);
+
 
 	float derivative = Get_Derivative(k->Xk[0][0] * 100);
-	float* HkData[] = {
-		(float[]){derivative, -k->b->R1, -k->b->R2}
-	};
-	k->Hk = (float**)HkData;
+
+	k->Hk = allocate_1_ptr(allocate_3(derivative, -k->b->R1, -k->b->R2));
 
 	float **Bkt = MatT(k->Bk, 3, 1);
 	k->SigmaWk = MatMul(k->Bk, Bkt, 3, 1, 1, 3);
@@ -185,3 +172,59 @@ SoC_Reading KalmanMockCycle(Kalman* k, float measuredCurrent, float *voltage) {
 	return k->Xk[0][0];
 }
 
+
+float* allocate_3(float e1, float e2, float e3) {
+	float *arr = NULL;
+
+	arr = (float *)malloc(sizeof(float) * 3);
+	if (arr == NULL) {
+		return arr;
+	}
+
+	arr[0] = e1;
+	arr[1] = e2;
+	arr[2] = e3;
+
+	return arr;
+}
+
+float* allocate_1(float element) {
+	float *arr = NULL;
+
+	arr = (float *)malloc(sizeof(float));
+	if (arr == NULL) {
+		return arr;
+	}
+
+	arr[0] = element;
+
+	return arr;
+}
+
+float **allocate_3_ptrs(float *ptr1, float *ptr2, float *ptr3) {
+	float **arr = NULL;
+
+	arr = (float **)malloc(sizeof(float *) * 3);
+	if (arr == NULL) {
+		return arr;
+	}
+	
+	arr[0] = ptr1;
+	arr[1] = ptr2;
+	arr[2] = ptr3;
+
+	return arr;
+}
+
+float **allocate_1_ptr(float *ptr) {
+	float **arr = NULL;
+
+	arr = (float **)malloc(sizeof(float *));
+	if (arr == NULL) {
+		return arr;
+	}
+	
+	arr[0] = ptr;
+
+	return arr;
+}

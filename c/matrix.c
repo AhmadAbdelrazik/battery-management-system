@@ -136,22 +136,3 @@ void printMatrix(float** matrix, int rows, int cols) {
     }
 }
 
-
-// Example usage
-/*
-int main() {
-    float* Adata[] = { (float[]){1, 2}, (float[]){3, 4} };
-    float** A = (float**)Adata;
-
-    float* Bdata[] = { (float[]){5, 6}, (float[]){7, 8} };
-    float** B = (float**)Bdata;
-
-    int rowA = 2, colA = 2, rowB = 2, colB = 2;
-
-    float** result = MatMul(A, B, rowA, colA, rowB, colB);
-    printMatrix(result, rowA, colB);
-    freeMatrix(result, rowA);
-
-    return 0;
-}
-*/
