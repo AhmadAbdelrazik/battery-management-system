@@ -1,5 +1,4 @@
 #include "kalman.h"
-#include <math.h>
 
 float SOC_OCV_Curve_Readings[201] = {
 3.0,

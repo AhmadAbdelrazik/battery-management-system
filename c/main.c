@@ -1,19 +1,34 @@
 #include "kalman.h"
+#include <math.h>
+#include <stdio.h>
 
 int main() {
+	float R0, R1, R2, C1, C2, Dt, Ni, Cn, Zk;
 
+	Battery B = {
+	R0 = 2.1552 * pow(10, -3),
+	R1 = 6.7587 * pow(10, -3),
+	R2 = 2.5683 * pow(10, -3),
+	C1 = 123.1912 * pow(10,3),
+	C2 = 4.5240 * pow(10, 3),
+	Dt = 0.1,    // Time step in seconds
+	Ni = 0.9894, // Coulombic Efficiency
+	Cn = 6.8080, // Nominal Capacity
+	Zk = 1.0    // State of Charge, 1.0 == 100%
+};
 
-	double* Adata[] = { (double[]){1, 2}, (double[]){3, 4} };
-	double** A = (double**)Adata;
+	Kalman *k = (Kalman *)InitKalman(&B);
 
-	double* Bdata[] = { (double[]){5, 6}, (double[]){7, 8} };
-	double** B = (double**)Bdata;
+	int i;
+	float Current = 0.4; // in Amperes
+	float voltageReadings, SoCreadings;
+	do {
+		SoCreadings = KalmanMockCycle(k, Current, &voltageReadings);
+		if (((int)(SoCreadings * 100) % 3) == 0) {
+			printf("SoC = %.4f%%\tV = %.4f\n", SoCreadings, voltageReadings);
+		}
 
-	int rowA = 2, colA = 2, rowB = 2, colB = 2;
-
-	double** result = MatMul(A, B, rowA, colA, rowB, colB);
-	printMatrix(result, rowA, colB);
-	freeMatrix(result, rowA);
+	} while(SoCreadings > 0.1);
 
 	return 0;
 }

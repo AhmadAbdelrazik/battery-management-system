@@ -1,5 +1,5 @@
 build: 
-	@gcc *.c -o bin/kalman
+	@g++ *.c *.h -o bin/kalman
 
 run: build
 	@./bin/kalman

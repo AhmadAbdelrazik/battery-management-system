@@ -5,7 +5,6 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <stdio.h>
-#include <math.h>
 
 typedef struct {
 	float R0;
@@ -39,7 +38,7 @@ typedef float SoC_Reading;
 // Kalman Functions
 Kalman* InitKalman(Battery* b);
 SoC_Reading KalmanCycle(Kalman* k, float measuredCurrent, float measuredVoltage);
-
+SoC_Reading KalmanMockCycle(Kalman* k, float measuredCurrent, float *voltage);
 // Matrix Functions
 float** MatT(float** A, int rowA, int colA);
 float** MatMul(float** A, float** B, int rowA, int colA, int rowB, int colB);

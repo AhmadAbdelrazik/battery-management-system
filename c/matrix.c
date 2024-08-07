@@ -138,6 +138,7 @@ void printMatrix(float** matrix, int rows, int cols) {
 
 
 // Example usage
+/*
 int main() {
     float* Adata[] = { (float[]){1, 2}, (float[]){3, 4} };
     float** A = (float**)Adata;
@@ -153,4 +154,4 @@ int main() {
 
     return 0;
 }
-
+*/

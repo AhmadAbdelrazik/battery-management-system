@@ -80,32 +80,44 @@ void StepSix(Kalman *k) {
 
 Kalman* InitKalman(Battery* b) {
 	Kalman *k = NULL;
-	k = malloc(sizeof(Kalman));
+	k = (Kalman *)malloc(sizeof(Kalman));
 
 	k->b = b;
 
 	// Initial State
+	
+	float XkDataR1[] = {b->Zk, 0, 0};
 	float* XkData[] = { 
-		(float[]){b->Zk, 0, 0}
+		XkDataR1
 	};
 	k->Xk = (float**)XkData;
 
 
 	// Initial Error Covariance
+
+	float PkDataR1[] = {0.005, 0, 0};
+	float PkDataR2[] = {0,0.0001,0};
+	float PkDataR3[] = {0,0,0.0001};
 	float* PkData[] = { 
-		(float[]){0.005, 0, 0},
-		(float[]){0,0.0001,0},
-		(float[]){0,0,0.0001}
+		PkDataR1,
+		PkDataR2,
+		PkDataR3
 	};
 	k->Pk = (float**)PkData;
 
 	// Process Jacobian
+	
+	float FkDataR1[] = {1, 0, 0};
+	float FkDataR2[] = {0, expf(-k->b->Dt / (k->b->R1 * k->b->C1)), 0};
+	float FkDataR3[] = {0, 0, expf(-k->b->Dt / (k->b->R2 * k->b->C2))};
+
 	float* FkData[] = { 
-		(float[]){1, 0, 0},
-		(float[]){0, expf(-k->b->Dt / (k->b->R1 * k->b->C1)), 0},
-		(float[]){0, 0, expf(-k->b->Dt / (k->b->R2 * k->b->C2))}
+		FkDataR1,
+		FkDataR2,
+		FkDataR3
 	};
 	k->Fk = (float**)FkData;
+
 
 	float* BkData[] = {
 		(float[]){-k->b->Ni * k->b->Dt / (3600 * k->b->Cn)},
@@ -146,6 +158,28 @@ SoC_Reading KalmanCycle(Kalman* k, float measuredCurrent, float measuredVoltage)
 
 	StepFour(k);
 	StepFive(k, measuredVoltage);
+	StepSix(k);
+
+	return k->Xk[0][0];
+}
+
+
+SoC_Reading KalmanMockCycle(Kalman* k, float measuredCurrent, float *voltage) {
+	float Ni = k->b->Ni;
+	if (measuredCurrent > 0) {
+		Ni = 1;
+	}
+	
+	k->Bk[0][0] = - Ni * k->b->Dt / (3600 * k->b->Cn);
+
+	StepOne(k, measuredCurrent);
+	StepTwo(k);
+	StepThree(k, measuredCurrent);
+
+	k->Hk[0][0] = Get_Derivative(k->Xk[0][0] * 100);
+
+	StepFour(k);
+	StepFive(k, k->Yk);
 	StepSix(k);
 
 	return k->Xk[0][0];
