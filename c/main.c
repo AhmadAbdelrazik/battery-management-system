@@ -17,5 +17,12 @@ int main() {
 
 	Kalman *k = (Kalman *)InitKalman(&B);
 
+	int i;
+	float SoC, voltage;
+	for (i = 0; i < 10; i++) {
+		SoC = KalmanMockCycle(k, 0.4, &voltage);
+		printf("SOC = %.3f\tVoltage = %.3f\n", SoC, voltage);
+	}
+
 	return 0;
 }

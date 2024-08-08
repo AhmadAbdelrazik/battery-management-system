@@ -91,7 +91,11 @@ Kalman* InitKalman(Battery* b) {
 	k->b = b;
 
 	// Initial State
-	k->Xk = allocate_1_ptr(allocate_3(b->Zk, 0, 0));
+	k->Xk = allocate_3_ptrs(
+		allocate_1(b->Zk),
+		allocate_1(0),
+		allocate_1(0)
+	);
 
 	// Initial Error Covariance
 	k->Pk = allocate_3_ptrs(
@@ -169,6 +173,7 @@ SoC_Reading KalmanMockCycle(Kalman* k, float measuredCurrent, float *voltage) {
 	StepFive(k, k->Yk);
 	StepSix(k);
 
+	*voltage = k->Yk;
 	return k->Xk[0][0];
 }
 

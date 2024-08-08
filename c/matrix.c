@@ -14,6 +14,7 @@ float** MatMul(float** A, float** B, int rowA, int colA, int rowB, int colB) {
 
     for (int row = 0; row < rowA; row++) {
         for (int col = 0; col < colB; col++) {
+            result[row][col] = 0;
             for (int i = 0; i < colA; i++) {
                 result[row][col] += A[row][i] * B[i][col];
             }
@@ -120,6 +121,10 @@ float MatDiffuse(float** A) {
 
 // Helper function to free matrix memory
 void freeMatrix(float** matrix, int rows) {
+    if (matrix == NULL) {
+        return ;
+    }
+
     for (int i = 0; i < rows; i++) {
         free(matrix[i]);
     }
