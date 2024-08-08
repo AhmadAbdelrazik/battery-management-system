@@ -19,9 +19,15 @@ int main() {
 
 	int i;
 	float SoC, voltage;
-	for (i = 0; i < 10; i++) {
+	for (i = 0; i < 1000000; i++) {
 		SoC = KalmanMockCycle(k, 0.4, &voltage);
-		printf("SOC = %.3f\tVoltage = %.3f\n", SoC, voltage);
+		if (i % 10000 == 0) {
+			printf("iteration %d\tSOC = %.2f%%\tVoltage = %.3f\n", i, SoC * 100, voltage);
+		}
+		if (SoC < 0.01) {
+			printf("iteration %d\tSOC = %.2f%%\tVoltage = %.3f\n", i, SoC * 100, voltage);
+			break;
+		}
 	}
 
 	return 0;

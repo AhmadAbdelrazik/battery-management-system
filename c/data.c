@@ -208,9 +208,9 @@ float Get_Voltage(float SOC) {
 	float low = floorf(SOC), mid = low + 0.5, high = ceilf(SOC);
 
 	if (high - SOC < SOC - low) {
-		return (SOC_OCV_Curve_Readings[(int)(high * 2 + 1)] + SOC_OCV_Curve_Readings[(int)(mid * 2 + 1)]) / 2.0;
+		return (SOC_OCV_Curve_Readings[(int)(high * 2)] + SOC_OCV_Curve_Readings[(int)(mid * 2)]) / 2.0;
 	} else {
-		return (SOC_OCV_Curve_Readings[(int)(low * 2 + 1)] + SOC_OCV_Curve_Readings[(int)(mid * 2 + 1)]) / 2.0;
+		return (SOC_OCV_Curve_Readings[(int)(low * 2 + 1)] + SOC_OCV_Curve_Readings[(int)(mid * 21)]) / 2.0;
 	}
 }
 
@@ -224,6 +224,6 @@ float Get_Derivative(float SOC) {
 		soc2 = floorf(SOC);
 	}
 
-	return (SOC_OCV_Curve_Readings[(int)(mid * 2 + 1)] - SOC_OCV_Curve_Readings[(int)(soc2 * 2 + 1)]) / (mid - soc2);
+	return (SOC_OCV_Curve_Readings[(int)(mid * 2)] - SOC_OCV_Curve_Readings[(int)(soc2 * 2)]) / (mid - soc2);
 }
 
